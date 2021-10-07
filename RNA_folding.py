@@ -14,18 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
+from os.path import dirname, join
 from itertools import product, combinations
+from collections import defaultdict
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 import dimod
+import click
 from dwave.system import LeapHybridCQMSampler
-
-"""
-This file contains functions called  to help in the building and processing of models related to RNA folding.
-The models are built and solved in a different file.
-"""
 
 
 def text_to_matrix(file_name, min_loop=2):
@@ -43,8 +40,7 @@ def text_to_matrix(file_name, min_loop=2):
         rna = "".join(("".join(line.split()[1:]) for line in f.readlines())).lower()
 
     # Create a dictionary of all indices where each nucleotide occurs.
-    # Mote: t vs u is mainly preference of database. While u is in rna, t is in dna.
-    index_dict = {'a': [], 'c': [], 'g': [], 't': [], 'u': []}
+    index_dict = defaultdict(list)
 
     # create a dictionary giving list of indices for each nucleotide.
     for i, nucleotide in enumerate(rna.lower()):
@@ -54,7 +50,7 @@ def text_to_matrix(file_name, min_loop=2):
     # Recall that 't' is just a stand in for 'u'.
     hydrogen_bonds = [('a', 't'), ('a', 'u'), ('c', 'g'), ('g', 't'), ('g', 'u')]
 
-    # Create a 0/1 matrix indicated where bonds may occur.
+    # Create a upper triangular 0/1 matrix indicated where bonds may occur.
     bond_matrix = np.zeros((len(rna), len(rna)), dtype=bool)
     for pair in hydrogen_bonds:
         for bond in product(index_dict[pair[0]], index_dict[pair[1]]):
@@ -67,12 +63,13 @@ def text_to_matrix(file_name, min_loop=2):
 def make_stem_dict(bond_matrix, min_stem=3, min_loop=2):
     """ Takes a matrix of potential hydrogen binding pairs and returns a dictionary of possible stems.
 
-    Each key is a maximal stem (under inclusion) whose value pair is a list of stems weakly contained in the key.
+    The stem dictionary records the maximal stems (under inclusion) as keys,
+    where each key maps to a list of the associated stems weakly contained within the maximal stem.
     Recording stems in this manner allows for faster computations.
 
     Args:
         bond_matrix: Numpy matrix of 0's and 1's, where 1 represents a possible bonding pair.
-        min_stem: Integer minimum number of nucleotides between two bonding nucleotides.
+        min_stem: Integer minimum number of nucleotides in each side of a stem.
         min_loop: Integer minimum number of nucleotides between two bonding nucleotides.
 
     Returns: Dictionary of all possible stems with maximal stems as keys.
@@ -86,6 +83,8 @@ def make_stem_dict(bond_matrix, min_stem=3, min_loop=2):
         for j in range(i + 2 * min_stem + min_loop - 1, n):
             if bond_matrix[i, j]:
                 k = 1
+                # Check down and left for length of stem:
+                # Note that bond_matrix is strictly upper triangular, so loop will terminate.
                 while bond_matrix[i + k, j - k]:
                     bond_matrix[i + k, j - k] = False
                     k += 1
@@ -147,7 +146,7 @@ def pseudoknot_terms(stem_dict, min_stem=3, c=0.3):
     for stem1, stem2 in product(stem_dict.keys(), stem_dict.keys()):
         # Using product instead of combinations allows for short asymmetric checks.
         if stem1[0] + 2 * min_stem < stem2[1] and stem1[2] + 2 * min_stem < stem2[3]:
-            pseudos.update({(substem1, substem2): c * (substem1[1] - substem1[0]) * (substem2[1] - substem2[0])
+            pseudos.update({(substem1, substem2): c * (1 + substem1[1] - substem1[0]) * (1 + substem2[1] - substem2[0])
                             for substem1, substem2
                             in product(stem_dict[stem1], stem_dict[stem2])
                             if substem1[1] < substem2[0] and substem2[1] < substem1[2] and substem1[3] < substem2[2]})
@@ -200,12 +199,11 @@ def make_plot(file, stems, fig_name='RNA_plot'):
     plt.savefig(fig_name + '.png')
 
 
-def build_cqm(stem_dict, min_stem=3):
+def build_cqm(stem_dict):
     """ Creates a Constrained Binary Model to optimize most likely stems from a dictionary of possible stems.
 
     Args:
         stem_dict: Dictionary with maximal stems as keys and list of weakly contained substems as values.
-        min_stem: Integer minimum number of nucleotides between two bonding nucleotides.
 
     Returns: Constrained Binary Model.
     """
@@ -229,7 +227,6 @@ def build_cqm(stem_dict, min_stem=3):
             cqm.add_variable(zeros, 'BINARY')
             cqm.add_discrete(substems + [zeros], stem)
 
-    overlaps = []
     for stem1, stem2 in combinations(stem_dict.keys(), 2):
         # Check maximal stems first.
         if check_overlap(stem1, stem2):
@@ -237,10 +234,6 @@ def build_cqm(stem_dict, min_stem=3):
             for stem_pair in product(stem_dict[stem1], stem_dict[stem2]):
                 if check_overlap(stem_pair[0], stem_pair[1]):
                     cqm.add_constraint(dimod.quicksum([dimod.Binary(stem) for stem in stem_pair]) <= 1)
-
-    # Add constraint disallowing other overlapping stems.
-    # for stem_pairs in find_overlaps(stem_dict):
-    #     cqm.add_constraint(dimod.quicksum([dimod.Binary(stem) for stem in stem_pairs]) <= 1)
 
     return cqm
 
@@ -258,22 +251,19 @@ def process_cqm_solution(sample_set, verbose=True):
     Returns: List of stems included in optimal solution, encoded as 4-tuples.
     """
 
-    infeasible = True
-    for sample in sample_set.data():
-        if sample.is_feasible:
-            solution = sample
-            infeasible = False
-            break
-
-    # Check for feasible solution.
-    if infeasible:
-        print('\nWarning! All solutions infeasible. You may need to try again.')
+    # Filter for feasibility
+    feasible_samples = sample_set.filter(lambda s: s.is_feasible)
+    # Check that feasible example exists
+    if not feasible_samples:
+        print('\033[93m' + '\nWarning! All solutions infeasible. You may need to try again.')
         return None
+    # Extract best feasible sample
+    solution = feasible_samples.first
 
-    print('Best Energy:', solution[1])
+    print('Best Energy:', solution.energy)
 
     # extract stems with a positive indicator variable.
-    bonded_stems = [stem for stem, val in solution[0].items() if val == 1 and type(stem) == tuple]
+    bonded_stems = [stem for stem, val in solution.sample.items() if val == 1 and type(stem) == tuple]
 
     print('\n# stems in best solution:', len(bonded_stems))
     print('Stems in best solution:', *bonded_stems)
@@ -292,28 +282,38 @@ def process_cqm_solution(sample_set, verbose=True):
     return bonded_stems
 
 
-if __name__ == "__main__":
-    file = 'RNA_text_files/TMGMV_UPD-PK1.txt'
-    # file = 'RNA_text_files/NGF-L6.txt'
-    # file = 'RNA_text_files/STMV_UPD2-PK1.txt'
-    # file = 'RNA_text_files/NC_008516.txt'
-    # file = 'RNA_text_files/hiv.txt'
-    # file = 'RNA_text_files/simple.txt'
+# Create command line functionality.
+DEFAULT_PATH = join(dirname(__file__), 'RNA_text_files', 'TMGMV_UPD-PK1.txt')
 
-    this_folder = os.path.dirname(os.path.abspath(__file__))
-    path_to_file = os.path.join(this_folder, file)
 
-    print('\nPreprocessing data from:', path_to_file)
+@click.command(help='Solve an instance of the RNA folding problem using '
+                    'LeapHybridCQMSampler.')
+@click.option('--path', type=click.Path(), default=DEFAULT_PATH,
+              help=f'Path to problem file.  Default is {DEFAULT_PATH!r}')
+@click.option('--verbose', is_flag=True, default=True)
+def main(path, verbose):
+    if verbose:
+        print('\nPreprocessing data from:', path)
 
-    stem_dict = make_stem_dict(text_to_matrix(path_to_file))
+    stem_dict = make_stem_dict(text_to_matrix(path))
     cqm = build_cqm(stem_dict)
 
-    print('Connecting to Solver...')
+    if verbose:
+        print('Connecting to Solver...')
+
     sampler = LeapHybridCQMSampler()
-    print('Finding Solution...')
+
+    if verbose:
+        print('Finding Solution...')
+
     sample_set = sampler.sample_cqm(cqm)
 
-    print('Processing solution...')
-    stems = process_cqm_solution(sample_set)
+    if verbose:
+        print('Processing solution...')
 
-    make_plot(path_to_file, stems)
+    stems = process_cqm_solution(sample_set, verbose)
+    make_plot(path, stems)
+
+
+if __name__ == "__main__":
+    main()

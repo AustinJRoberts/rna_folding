@@ -92,8 +92,8 @@ are stored in a dictionary structure to speed processing.
 By default, the minimum stem length is set to 3. 
 A stem of length 5 thus contains
 two stems of length 4 and three stems of length 3 under inclusion.
-Our stem dictionary records each maximal stems (under inclusion) as keys
-and a list of all stems it weakly contains as the value pair. 
+The stem dictionary records the maximal stems (under inclusion) as keys,
+where each key maps to a list of the associated stems weakly contained within the maximal stem.
 
 No two stems contained in the same maximal key can both be in an optimal solution, 
 so we treat them all as overlapping, regardless of if it is literally the case.
