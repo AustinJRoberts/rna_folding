@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
 from os.path import dirname, join
 from collections import defaultdict
 from itertools import product, combinations
@@ -80,7 +81,7 @@ def make_stem_dict(bond_matrix, min_stem=3, min_loop=2):
     n = bond_matrix.shape[0]
 
     # Iterate through matrix looking for possible stems.
-    for i in range(n - (2 * min_stem + min_loop)):
+    for i in range(n + 1 - (2 * min_stem + min_loop)):
         for j in range(i + 2 * min_stem + min_loop - 1, n):
             if bond_matrix[i, j]:
                 k = 1
@@ -259,8 +260,9 @@ def process_cqm_solution(sample_set, verbose=True):
     feasible_samples = sample_set.filter(lambda s: s.is_feasible)
     # Check that feasible example exists
     if not feasible_samples:
-        print('\033[93m' + '\nWarning! All solutions infeasible. You may need to try again.')
-        return None
+        raise Exception("All solutions infeasible. You may need to try again.")
+        sys.exit()
+
     # Extract best feasible sample
     solution = feasible_samples.first
 
@@ -316,6 +318,11 @@ def main(path, verbose, min_stem, min_loop, c):
 
     Returns:
     """
+    # Sanitize inputs
+    assert (min_stem >= 1), 'min_stem must be greater or equal to 1.'
+    assert (min_loop >= 0), 'min_loop must be non-negative.'
+    assert (c >= 0), 'c must be non-negative'
+
     if verbose:
         print('\nPreprocessing data from:', path)
 
@@ -324,7 +331,7 @@ def main(path, verbose, min_stem, min_loop, c):
     if stem_dict:
         cqm = build_cqm(stem_dict, min_stem, c)
     else:
-        print('\nWarning: No possible stems were found. You may need to check your parameters.')
+        print('\nNo possible stems were found. You may need to check your parameters.')
         return None
 
     if verbose:
