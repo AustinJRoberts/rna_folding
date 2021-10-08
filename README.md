@@ -77,7 +77,7 @@ Larger values make pseudoknots less likely.
 
 As an example, to explicitly call the default values, type:
 ```bash
-python RNA_folding.py --path /RNA_text_files/TMGMV_UPD-PK1.txt --verbose True  --min-stem 3 --min-loop 2 -c 0.3 
+python RNA_folding.py --path RNA_text_files/TMGMV_UPD-PK1.txt --verbose True  --min-stem 3 --min-loop 2 -c 0.3 
 ```
 
 
