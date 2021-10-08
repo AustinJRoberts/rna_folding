@@ -47,8 +47,8 @@ increasing overall accuracy.
 Fig.2 - A pseudoknot formed by a stem of length 3 and a stem of length 5.
 </p>
 
-This demo is loosely based on the work of the first paper cited in the References section,
-which is in turn inspired by the second paper in the Reference section.
+This demo is loosely based on the work in [1],
+which is in turn inspired by [2].
 
 ## Usage
 
@@ -67,8 +67,8 @@ Several optional parameters are accepted:
 - `--path`: specifies path the input text file with RNA sequence information. 
 - `--verbose`: if set to default value of 'True',
 the program prints additional information about the model. 
-- `--min_stem`: minimum length necessary for a stem to be considered.
-- `--min_loop`: minimum number of neucleotides that must be present
+- `--min-stem`: minimum length necessary for a stem to be considered.
+- `--min-loop`: minimum number of neucleotides that must be present
 in between the two sides of a stem for that stem to be considered. 
 In the literature, this is termed a 'hairpin loop.'
 - `-c`: used in th coefficient, *ck<sub>i</sub>k<sub>j</sub>*, 
@@ -77,7 +77,7 @@ Larger values make pseudoknots less likely.
 
 As an example, to explicitly call the default values, type:
 ```bash
-python RNA_folding.py --path /RNA_text_files/TMGMV_UPD-PK1.txt --verbose True  --min_stem 3 --min_loop 2 --c 0.3 
+python RNA_folding.py --path /RNA_text_files/TMGMV_UPD-PK1.txt --verbose True  --min-stem 3 --min-loop 2 -c 0.3 
 ```
 
 
@@ -104,7 +104,7 @@ The indexing set *S* is the set of all pairs of stems that forma a pseudoknot.
 Finally, *c* is a tunable parameter adjusting the impact of pseudonknots.
 It is set to 0.3 by default.
 
-This formulation is loosely based on the first paper cited in the References section.
+This formulation is loosely based on [1].
 
 In the printed solution, each stem is denoted by four numbers. 
 The first two numbers correspond to the beginning and ending indices of the first side of the stem. 
@@ -145,10 +145,10 @@ even if the solution does not.
 
 ## References
 
-Fox DM, MacDermaid CM, Schreij AM, Zwierzyna M, Walker RC. 
+[1] Fox DM, MacDermaid CM, Schreij AM, Zwierzyna M, Walker RC. 
 RNA folding using quantum computers. 
 bioRxiv; 2021. DOI: 10.1101/2021.05.27.446060.
 
-Kai, Zhang, et al. 
+[2] Kai, Zhang, et al. 
 "An efficient simulated annealing algorithm for the RNA secondary structure prediction with Pseudoknots." 
 BMC genomics 20.13 (2019): 1-13.

@@ -297,9 +297,9 @@ DEFAULT_PATH = join(dirname(__file__), 'RNA_text_files', 'TMGMV_UPD-PK1.txt')
 @click.option('--path', type=click.Path(), default=DEFAULT_PATH,
               help=f'Path to problem file.  Default is {DEFAULT_PATH!r}')
 @click.option('--verbose', is_flag=True, default=True)
-@click.option('--min_stem', type=click.INT, default=3,
+@click.option('--min-stem', type=click.INT, default=3,
               help='Minimum length for a stem to be considered.')
-@click.option('--min_loop', type=click.INT, default=2,
+@click.option('--min-loop', type=click.INT, default=2,
               help='Minimum number of nucleotides separating two sides of a stem.')
 @click.option('-c', type=click.FLOAT, default=0.3,
               help='Multiplier for the coefficient of the quadratic terms for pseudoknots.')
