@@ -15,13 +15,14 @@
 # limitations under the License.
 
 from os.path import dirname, join
-from itertools import product, combinations
 from collections import defaultdict
+from itertools import product, combinations
+import click
+
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 import dimod
-import click
 from dwave.system import LeapHybridCQMSampler
 
 
@@ -199,7 +200,7 @@ def make_plot(file, stems, fig_name='RNA_plot'):
     plt.savefig(fig_name + '.png')
 
 
-def build_cqm(stem_dict):
+def build_cqm(stem_dict, min_stem, c):
     """ Creates a Constrained Binary Model to optimize most likely stems from a dictionary of possible stems.
 
     Args:
@@ -208,11 +209,12 @@ def build_cqm(stem_dict):
     Returns: Constrained Binary Model.
     """
 
-    # Create linear coefficients the prioritize inclusion of long stems.
+    # Create linear coefficients of -k^2, prioritizing inclusion of long stems.
+    # We depart slightly from the reference paper in this formulation.
     linear_coeffs = {stem: -1 * (stem[1] - stem[0] + 1) ** 2 for sublist in stem_dict.values() for stem in sublist}
 
     # Create constraints for overlapping and and substem containment.
-    quadratic_coeffs = pseudoknot_terms(stem_dict)
+    quadratic_coeffs = pseudoknot_terms(stem_dict, min_stem=min_stem)
 
     bqm = dimod.BinaryQuadraticModel(linear_coeffs, quadratic_coeffs, 'BINARY')
 
@@ -291,12 +293,20 @@ DEFAULT_PATH = join(dirname(__file__), 'RNA_text_files', 'TMGMV_UPD-PK1.txt')
 @click.option('--path', type=click.Path(), default=DEFAULT_PATH,
               help=f'Path to problem file.  Default is {DEFAULT_PATH!r}')
 @click.option('--verbose', is_flag=True, default=True)
-def main(path, verbose):
+@click.option('--min_stem', type=click.INT, default=50)
+@click.option('--min_loop', type=click.INT, default=2)
+@click.option('--c', type=click.FLOAT, default=0.3)
+def main(path, verbose, min_stem, min_loop, c):
     if verbose:
         print('\nPreprocessing data from:', path)
 
-    stem_dict = make_stem_dict(text_to_matrix(path))
-    cqm = build_cqm(stem_dict)
+    stem_dict = make_stem_dict(text_to_matrix(path), min_stem, min_loop)
+
+    if stem_dict:
+        cqm = build_cqm(stem_dict, min_stem, c)
+    else:
+        print('\nWarning: No possible stems were found. You may need to check your parameters.')
+        return None
 
     if verbose:
         print('Connecting to Solver...')
