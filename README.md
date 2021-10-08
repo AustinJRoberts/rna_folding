@@ -20,12 +20,12 @@ This demo program takes am RNA sequence and applies a quadratic model in persuit
 Fig.1 - An RNA sequence with a single stem of length 4.
 </p>
 
-Predicting stems is important to predicting the properties of the RNA molecule.
+Predicting the existence of stems is important to predicting the properties of the RNA molecule.
 However, prediction is made more complicated by two important factors. 
 
 First, stems are not allowed to overlap. 
 A simple case of overlapping can be illustrated by Figure 1.
-The stem denoted by the pink lines can be denoted with the tuple (2, 5, 14, 17),
+The stem expressed by the pink lines can be denoted with the tuple (2, 5, 14, 17),
 where 2 is the index of the first G,
 4 is the index of the U,
 14 is the index of the A,
@@ -64,16 +64,16 @@ It then saves a plot of the sequence and its bonds as `RNA_plot.png`.
 ### Optional parameters
 Several optional parameters are accepted:
 
-- `path`: specifies path the input text file with RNA sequence information. 
-- `verbose`: if set to default value of 'True',
+- `--path`: specifies path the input text file with RNA sequence information. 
+- `--verbose`: if set to default value of 'True',
 the program prints additional information about the model. 
-- `min_stem`: minimum length necessary for a stem to be considered.
-- `min_loop`: minimum number of neucleotides that must be present
+- `--min_stem`: minimum length necessary for a stem to be considered.
+- `--min_loop`: minimum number of neucleotides that must be present
 in between the two sides of a stem for that stem to be considered. 
 In the literature, this is termed a 'hairpin loop.'
-- `c`: used in th coefficient, *ck<sub>i</sub>k<sub>j</sub>*, 
+- `-c`: used in th coefficient, *ck<sub>i</sub>k<sub>j</sub>*, 
 applied to the quadratic pseudoknot terms.
-Large values make pseudoknots less likely.
+Larger values make pseudoknots less likely.
 
 As an example, to explicitly call the default values, type:
 ```bash
@@ -100,11 +100,11 @@ Subject to ![constraint](readme_imgs/constraint.png) if stems *i* and *j* overla
 
 Here, each *x<sub>i</sub>* is a binary variable indicating the inclusion/exclusion of the *i<sup>th</sup>* stem.
 Each constant *k<sub>i</sub>* is the length of said stem.
-The indexing set S is the set of all pairs of stems that forma a pseudoknot.
-Finally, c is a tunable parameter adjusting the impact of pseudonknots.
+The indexing set *S* is the set of all pairs of stems that forma a pseudoknot.
+Finally, *c* is a tunable parameter adjusting the impact of pseudonknots.
 It is set to 0.3 by default.
 
-This formulation is loosely based on the on paper cited in the References section.
+This formulation is loosely based on the first paper cited in the References section.
 
 In the printed solution, each stem is denoted by four numbers. 
 The first two numbers correspond to the beginning and ending indices of the first side of the stem. 

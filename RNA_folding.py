@@ -200,11 +200,13 @@ def make_plot(file, stems, fig_name='RNA_plot'):
     plt.savefig(fig_name + '.png')
 
 
-def build_cqm(stem_dict, min_stem, c):
+def build_cqm(stem_dict, min_stem=3, c=0.3):
     """ Creates a Constrained Binary Model to optimize most likely stems from a dictionary of possible stems.
 
     Args:
         stem_dict: Dictionary with maximal stems as keys and list of weakly contained substems as values.
+        min_stem: Integer smallest number of consecutive bonds to be considered a stem.
+        c: Float parameter factor of the penalty on pseudoknots.
 
     Returns: Constrained Binary Model.
     """
@@ -214,7 +216,7 @@ def build_cqm(stem_dict, min_stem, c):
     linear_coeffs = {stem: -1 * (stem[1] - stem[0] + 1) ** 2 for sublist in stem_dict.values() for stem in sublist}
 
     # Create constraints for overlapping and and substem containment.
-    quadratic_coeffs = pseudoknot_terms(stem_dict, min_stem=min_stem)
+    quadratic_coeffs = pseudoknot_terms(stem_dict, min_stem=min_stem, c=c)
 
     bqm = dimod.BinaryQuadraticModel(linear_coeffs, quadratic_coeffs, 'BINARY')
 
@@ -293,10 +295,27 @@ DEFAULT_PATH = join(dirname(__file__), 'RNA_text_files', 'TMGMV_UPD-PK1.txt')
 @click.option('--path', type=click.Path(), default=DEFAULT_PATH,
               help=f'Path to problem file.  Default is {DEFAULT_PATH!r}')
 @click.option('--verbose', is_flag=True, default=True)
-@click.option('--min_stem', type=click.INT, default=50)
-@click.option('--min_loop', type=click.INT, default=2)
-@click.option('--c', type=click.FLOAT, default=0.3)
+@click.option('--min_stem', type=click.INT, default=3,
+              help='Minimum length for a stem to be considered.')
+@click.option('--min_loop', type=click.INT, default=2,
+              help='Minimum number of nucleotides separating two sides of a stem.')
+@click.option('-c', type=click.FLOAT, default=0.3,
+              help='Multiplier for the coefficient of the quadratic terms for pseudoknots.')
 def main(path, verbose, min_stem, min_loop, c):
+    """ Find optimal stem configuration of an RNA sequence.
+
+    Reads file, creates constrained quadratic model, solves model, and creates a plot of the result.
+    Default parameters are set by click module inputs.
+
+    Args:
+        path: Path to problem file with RNA sequence.
+        verbose: Boolean to determine amount of information printed.
+        min_stem: Integer smallest number of consecutive bonds to be considered a stem.
+        min_loop: Integer minimum number of nucleotides separating two sides of a stem.
+        c: Float multiplier for the coefficient of the quadratic terms for pseudoknots.
+
+    Returns:
+    """
     if verbose:
         print('\nPreprocessing data from:', path)
 
