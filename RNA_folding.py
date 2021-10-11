@@ -337,6 +337,7 @@ def main(path, verbose, min_stem, min_loop, c):
         print('Finding Solution...')
 
     sample_set = sampler.sample_cqm(cqm)
+    sample_set.resolve()
 
     if verbose:
         print('Processing solution...')
