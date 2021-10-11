@@ -100,8 +100,8 @@ Subject to ![constraint](readme_imgs/constraint.png) if stems *i* and *j* overla
 
 Here, each *x<sub>i</sub>* is a binary variable indicating the inclusion/exclusion of the *i<sup>th</sup>* stem.
 Each constant *k<sub>i</sub>* is the length of said stem.
-The indexing set *S* is the set of all pairs of stems that forma a pseudoknot.
-Finally, *c* is a tunable parameter adjusting the impact of pseudonknots.
+The indexing set *S* is the set of all pairs of stems that form a pseudoknot.
+Finally, *c* is a tunable parameter adjusting the impact of pseudoknots.
 It is set to 0.3 by default.
 
 This formulation is loosely based on [1].
