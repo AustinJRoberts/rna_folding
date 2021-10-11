@@ -58,7 +58,7 @@ To run the demo through a command line interface, type:
 python RNA_folding.py
 ```
 
-The demo prints the optimal stem configuration along with other relavent data. 
+The demo prints the optimal stem configuration along with other relevant data.
 It then saves a plot of the sequence and its bonds as `RNA_plot.png`.
 
 ### Optional parameters
