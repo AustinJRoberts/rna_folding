@@ -11,7 +11,7 @@ and a stem provides sufficient force to keep the molecule folded together.
 In nature, an RNA molecule will form some stems while avoiding others
 in a manner that  minimizes the free energy of the system. 
 
-This demo program takes am RNA sequence and applies a quadratic model in persuit of the optimal stem configuration.
+This demo program takes am RNA sequence and applies a quadratic model in pursuit of the optimal stem configuration.
 
 <p align = "center">
 
