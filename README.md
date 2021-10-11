@@ -68,7 +68,7 @@ Several optional parameters are accepted:
 - `--verbose`: if set to default value of 'True',
 the program prints additional information about the model. 
 - `--min-stem`: minimum length necessary for a stem to be considered.
-- `--min-loop`: minimum number of neucleotides that must be present
+- `--min-loop`: minimum number of nucleotides that must be present
 in between the two sides of a stem for that stem to be considered. 
 In the literature, this is termed a 'hairpin loop.'
 - `-c`: used in th coefficient, *ck<sub>i</sub>k<sub>j</sub>*, 
