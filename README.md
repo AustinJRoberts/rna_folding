@@ -11,7 +11,7 @@ and a stem provides sufficient force to keep the molecule folded together.
 In nature, an RNA molecule will form some stems while avoiding others
 in a manner that  minimizes the free energy of the system. 
 
-This demo program takes am RNA sequence and applies a quadratic model in persuit of the optimal stem configuration.
+This demo program takes am RNA sequence and applies a quadratic model in pursuit of the optimal stem configuration.
 
 <p align = "center">
 
@@ -34,7 +34,7 @@ This 4-tuple is mapped to a single variable.
 However, the smaller stems (2, 4, 15, 17) and (3, 5, 15, 16) also need to be considered,
 even though the optimal solution will not include them in this case.
 
-Second, the intertwining phenomenon known as psuedoknots are less energetically favorable.
+Second, the intertwining phenomenon known as pseudoknots are less energetically favorable.
 In Figure 2, we see an example of such a pseudoknot, 
 where one side of a stem occurs in between the two sides of a different stem.
 The use of a quadratic objective allows us to make pseudoknots less likely to occur in optimal solutions,
@@ -58,7 +58,7 @@ To run the demo through a command line interface, type:
 python RNA_folding.py
 ```
 
-The demo prints the optimal stem configuration along with other relavent data. 
+The demo prints the optimal stem configuration along with other relevant data.
 It then saves a plot of the sequence and its bonds as `RNA_plot.png`.
 
 ### Optional parameters
@@ -68,7 +68,7 @@ Several optional parameters are accepted:
 - `--verbose`: if set to default value of 'True',
 the program prints additional information about the model. 
 - `--min-stem`: minimum length necessary for a stem to be considered.
-- `--min-loop`: minimum number of neucleotides that must be present
+- `--min-loop`: minimum number of nucleotides that must be present
 in between the two sides of a stem for that stem to be considered. 
 In the literature, this is termed a 'hairpin loop.'
 - `-c`: used in th coefficient, *ck<sub>i</sub>k<sub>j</sub>*, 
@@ -100,8 +100,8 @@ Subject to ![constraint](readme_imgs/constraint.png) if stems *i* and *j* overla
 
 Here, each *x<sub>i</sub>* is a binary variable indicating the inclusion/exclusion of the *i<sup>th</sup>* stem.
 Each constant *k<sub>i</sub>* is the length of said stem.
-The indexing set *S* is the set of all pairs of stems that forma a pseudoknot.
-Finally, *c* is a tunable parameter adjusting the impact of pseudonknots.
+The indexing set *S* is the set of all pairs of stems that form a pseudoknot.
+Finally, *c* is a tunable parameter adjusting the impact of pseudoknots.
 It is set to 0.3 by default.
 
 This formulation is loosely based on [1].
