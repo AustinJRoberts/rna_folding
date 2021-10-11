@@ -34,7 +34,7 @@ This 4-tuple is mapped to a single variable.
 However, the smaller stems (2, 4, 15, 17) and (3, 5, 15, 16) also need to be considered,
 even though the optimal solution will not include them in this case.
 
-Second, the intertwining phenomenon known as psuedoknots are less energetically favorable.
+Second, the intertwining phenomenon known as pseudoknots are less energetically favorable.
 In Figure 2, we see an example of such a pseudoknot, 
 where one side of a stem occurs in between the two sides of a different stem.
 The use of a quadratic objective allows us to make pseudoknots less likely to occur in optimal solutions,
