@@ -187,7 +187,7 @@ def make_plot(file, stems, fig_name='RNA_plot'):
         else:
             color_map.append('tab:blue')
 
-    options = {"edgecolors": "tab:gray", "node_size": 250, "alpha": 0.8}
+    options = {"edgecolors": "tab:gray", "node_size": 200, "alpha": 0.8}
     pos = nx.spring_layout(G, iterations=5000)  # max(3000, 125 * len(rna)))
     nx.draw_networkx_nodes(G, pos, node_color=color_map, **options)
 
@@ -195,7 +195,7 @@ def make_plot(file, stems, fig_name='RNA_plot'):
     nx.draw_networkx_labels(G, pos, labels, font_size=10, font_color="whitesmoke")
 
     nx.draw_networkx_edges(G, pos, edgelist=rna_edges, width=3.0, alpha=0.5)
-    nx.draw_networkx_edges(G, pos, edgelist=stem_edges, width=4.5, alpha=0.8, edge_color='tab:pink')
+    nx.draw_networkx_edges(G, pos, edgelist=stem_edges, width=4.5, alpha=0.7, edge_color='tab:pink')
 
     plt.savefig(fig_name + '.png')
 
