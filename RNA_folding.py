@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
 from os.path import dirname, join
 from collections import defaultdict
 from itertools import product, combinations
@@ -261,7 +260,6 @@ def process_cqm_solution(sample_set, verbose=True):
     # Check that feasible example exists
     if not feasible_samples:
         raise Exception("All solutions infeasible. You may need to try again.")
-        sys.exit()
 
     # Extract best feasible sample
     solution = feasible_samples.first
@@ -297,11 +295,11 @@ DEFAULT_PATH = join(dirname(__file__), 'RNA_text_files', 'TMGMV_UPD-PK1.txt')
 @click.option('--path', type=click.Path(), default=DEFAULT_PATH,
               help=f'Path to problem file.  Default is {DEFAULT_PATH!r}')
 @click.option('--verbose', is_flag=True, default=True)
-@click.option('--min-stem', type=click.INT, default=3,
+@click.option('--min-stem', type=click.IntRange(1,), default=3,
               help='Minimum length for a stem to be considered.')
-@click.option('--min-loop', type=click.INT, default=2,
+@click.option('--min-loop', type=click.IntRange(0,), default=2,
               help='Minimum number of nucleotides separating two sides of a stem.')
-@click.option('-c', type=click.FLOAT, default=0.3,
+@click.option('-c', type=click.FloatRange(0,), default=0.3,
               help='Multiplier for the coefficient of the quadratic terms for pseudoknots.')
 def main(path, verbose, min_stem, min_loop, c):
     """ Find optimal stem configuration of an RNA sequence.
@@ -318,15 +316,11 @@ def main(path, verbose, min_stem, min_loop, c):
 
     Returns:
     """
-    # Sanitize inputs
-    assert (min_stem >= 1), 'min_stem must be greater or equal to 1.'
-    assert (min_loop >= 0), 'min_loop must be non-negative.'
-    assert (c >= 0), 'c must be non-negative'
-
     if verbose:
         print('\nPreprocessing data from:', path)
 
-    stem_dict = make_stem_dict(text_to_matrix(path), min_stem, min_loop)
+    matrix = text_to_matrix(path, min_loop)
+    stem_dict = make_stem_dict(matrix, min_stem, min_loop)
 
     if stem_dict:
         cqm = build_cqm(stem_dict, min_stem, c)
