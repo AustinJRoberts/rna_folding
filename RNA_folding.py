@@ -201,7 +201,7 @@ def make_plot(file, stems, fig_name='RNA_plot'):
     plt.savefig(fig_name + '.png')
 
 
-def build_cqm(stem_dict, min_stem=3, c=0.3):
+def build_cqm(stem_dict, min_stem, c):
     """ Creates a Constrained Binary Model to optimize most likely stems from a dictionary of possible stems.
 
     Args:

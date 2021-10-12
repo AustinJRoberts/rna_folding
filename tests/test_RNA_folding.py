@@ -38,8 +38,9 @@ class TestRNA_folding(unittest.TestCase):
 
         file = os.path.join(project_dir, 'RNA_text_files/TMGMV_UPD-PK1.txt')
 
-        stem_dict = RNA_folding.make_stem_dict(RNA_folding.text_to_matrix(file))
-        cqm = RNA_folding.build_cqm(stem_dict)
+        bond_matrix = RNA_folding.text_to_matrix(file, 2)
+        stem_dict = RNA_folding.make_stem_dict(bond_matrix, 3, 2)
+        cqm = RNA_folding.build_cqm(stem_dict, 3, 0.3)
 
         self.assertEqual(len(cqm.variables), 17)
         self.assertEqual(len(cqm.constraints), 36)
@@ -49,8 +50,9 @@ class TestRNA_folding(unittest.TestCase):
 
         file = os.path.join(project_dir, 'RNA_text_files/simple_pseudo.txt')
 
-        stem_dict = RNA_folding.make_stem_dict(RNA_folding.text_to_matrix(file))
-        cqm = RNA_folding.build_cqm(stem_dict)
+        bond_matrix = RNA_folding.text_to_matrix(file, 2)
+        stem_dict = RNA_folding.make_stem_dict(bond_matrix, 3, 2)
+        cqm = RNA_folding.build_cqm(stem_dict, 3, 0.3)
 
         sampler = LeapHybridCQMSampler()
         sample_set = sampler.sample_cqm(cqm)
