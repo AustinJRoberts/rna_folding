@@ -26,7 +26,7 @@ import dimod
 from dwave.system import LeapHybridCQMSampler
 
 
-def text_to_matrix(file_name, min_loop=2):
+def text_to_matrix(file_name, min_loop):
     """ Reads properly formatted RNA text file and returns a matrix of possible hydrogen bonding pairs.
 
     Args:
@@ -36,22 +36,22 @@ def text_to_matrix(file_name, min_loop=2):
     Returns: Numpy matrix of 0's and 1's, where 1 represents a possible bonding pair.
     """
 
-    # Requires text file of rna data written in same format as examples.
+    # Requires text file of RNA data written in same format as examples.
     with open(file_name) as f:
         rna = "".join(("".join(line.split()[1:]) for line in f.readlines())).lower()
 
     # Create a dictionary of all indices where each nucleotide occurs.
     index_dict = defaultdict(list)
 
-    # create a dictionary giving list of indices for each nucleotide.
+    # Create a dictionary giving list of indices for each nucleotide.
     for i, nucleotide in enumerate(rna.lower()):
         index_dict[nucleotide].append(i)
 
     # List of possible hydrogen bonds for stems.
-    # Recall that 't' is just a stand in for 'u'.
+    # Recall that 't' is sometimes used as a stand-in for 'u'.
     hydrogen_bonds = [('a', 't'), ('a', 'u'), ('c', 'g'), ('g', 't'), ('g', 'u')]
 
-    # Create a upper triangular 0/1 matrix indicated where bonds may occur.
+    # Create a upper triangular 0/1 matrix indicating where bonds may occur.
     bond_matrix = np.zeros((len(rna), len(rna)), dtype=bool)
     for pair in hydrogen_bonds:
         for bond in product(index_dict[pair[0]], index_dict[pair[1]]):
@@ -61,7 +61,7 @@ def text_to_matrix(file_name, min_loop=2):
     return bond_matrix
 
 
-def make_stem_dict(bond_matrix, min_stem=3, min_loop=2):
+def make_stem_dict(bond_matrix, min_stem, min_loop):
     """ Takes a matrix of potential hydrogen binding pairs and returns a dictionary of possible stems.
 
     The stem dictionary records the maximal stems (under inclusion) as keys,
@@ -84,7 +84,7 @@ def make_stem_dict(bond_matrix, min_stem=3, min_loop=2):
         for j in range(i + 2 * min_stem + min_loop - 1, n):
             if bond_matrix[i, j]:
                 k = 1
-                # Check down and left for length of stem:
+                # Check down and left for length of stem.
                 # Note that bond_matrix is strictly upper triangular, so loop will terminate.
                 while bond_matrix[i + k, j - k]:
                     bond_matrix[i + k, j - k] = False
@@ -94,7 +94,7 @@ def make_stem_dict(bond_matrix, min_stem=3, min_loop=2):
                     # A 4-tuple is used to represent the stem.
                     stem_dict[(i, i + k - 1, j - k + 1, j)] = []
 
-    # Iterate through all substems weakly contained in a maximal stem under inclusion.
+    # Iterate through all sub-stems weakly contained in a maximal stem under inclusion.
     for stem in stem_dict.keys():
         stem_dict[stem].extend([(stem[0] + i, stem[0] + k, stem[3] - k, stem[3] - i)
                                 for i in range(stem[1] - stem[0] - min_stem + 2)
@@ -113,6 +113,7 @@ def check_overlap(stem1, stem2):
     Returns: Boolean indicating if the two stems overlap.
     """
 
+    # Check for string dummy variable used when implementing a discrete variable.
     if type(stem1) == str or type(stem2) == str:
         return False
 
@@ -135,7 +136,7 @@ def pseudoknot_terms(stem_dict, min_stem=3, c=0.3):
     The penalty is the parameter c times the product of the lengths of the two stems in the knot.
 
     Args:
-        stem_dict: Dictionary with maximal stems as keys and list of weakly contained substems as values.
+        stem_dict: Dictionary with maximal stems as keys and list of weakly contained sub-stems as values.
         min_stem: Integer smallest number of consecutive bonds to be considered a stem.
         c: Float parameter factor of the penalty on pseudoknots.
 
@@ -143,7 +144,7 @@ def pseudoknot_terms(stem_dict, min_stem=3, c=0.3):
     """
 
     pseudos = {}
-    # Look within all pairs of maximal stems for possible psuedoknots.
+    # Look within all pairs of maximal stems for possible pseudoknots.
     for stem1, stem2 in product(stem_dict.keys(), stem_dict.keys()):
         # Using product instead of combinations allows for short asymmetric checks.
         if stem1[0] + 2 * min_stem < stem2[1] and stem1[2] + 2 * min_stem < stem2[3]:
@@ -165,7 +166,7 @@ def make_plot(file, stems, fig_name='RNA_plot'):
     Returns:None
     """
 
-    # Read rna file for length and labels.
+    # Read RNA file for length and labels.
     with open(file) as f:
         rna = "".join(("".join(line.split()[1:]) for line in f.readlines())).lower()
 
@@ -204,7 +205,7 @@ def build_cqm(stem_dict, min_stem=3, c=0.3):
     """ Creates a Constrained Binary Model to optimize most likely stems from a dictionary of possible stems.
 
     Args:
-        stem_dict: Dictionary with maximal stems as keys and list of weakly contained substems as values.
+        stem_dict: Dictionary with maximal stems as keys and list of weakly contained sub-stems as values.
         min_stem: Integer smallest number of consecutive bonds to be considered a stem.
         c: Float parameter factor of the penalty on pseudoknots.
 
@@ -212,10 +213,10 @@ def build_cqm(stem_dict, min_stem=3, c=0.3):
     """
 
     # Create linear coefficients of -k^2, prioritizing inclusion of long stems.
-    # We depart slightly from the reference paper in this formulation.
+    # We depart from the reference paper in this formulation.
     linear_coeffs = {stem: -1 * (stem[1] - stem[0] + 1) ** 2 for sublist in stem_dict.values() for stem in sublist}
 
-    # Create constraints for overlapping and and substem containment.
+    # Create constraints for overlapping and and sub-stem containment.
     quadratic_coeffs = pseudoknot_terms(stem_dict, min_stem=min_stem, c=c)
 
     bqm = dimod.BinaryQuadraticModel(linear_coeffs, quadratic_coeffs, 'BINARY')
@@ -223,7 +224,7 @@ def build_cqm(stem_dict, min_stem=3, c=0.3):
     cqm = dimod.ConstrainedQuadraticModel()
     cqm.set_objective(bqm)
 
-    # Add constraint disallowing overlapping substsems included in same maximal stem.
+    # Add constraint disallowing overlapping sub-stems included in same maximal stem.
     for stem, substems in stem_dict.items():
         if len(substems) > 1:
             # Add the variable for all zeros case in one-hot constraint
@@ -255,18 +256,18 @@ def process_cqm_solution(sample_set, verbose=True):
     Returns: List of stems included in optimal solution, encoded as 4-tuples.
     """
 
-    # Filter for feasibility
+    # Filter for feasibility.
     feasible_samples = sample_set.filter(lambda s: s.is_feasible)
-    # Check that feasible example exists
+    # Check that feasible example exists.
     if not feasible_samples:
         raise Exception("All solutions infeasible. You may need to try again.")
 
-    # Extract best feasible sample
+    # Extract best feasible sample.
     solution = feasible_samples.first
 
     print('Best Energy:', solution.energy)
 
-    # extract stems with a positive indicator variable.
+    # Extract stems with a positive indicator variable.
     bonded_stems = [stem for stem, val in solution.sample.items() if val == 1 and type(stem) == tuple]
 
     print('\n# stems in best solution:', len(bonded_stems))
@@ -275,7 +276,7 @@ def process_cqm_solution(sample_set, verbose=True):
     if verbose:
         print('\n# variables (stems):', len(solution[0].keys()))
 
-        # find psuedoknots using product instead of combinations allows for short asymmetric checks.
+        # Find pseudoknots using product instead of combinations allows for short asymmetric checks.
         pseudoknots = [(stem1, stem2) for [stem1, stem2] in product(bonded_stems, bonded_stems)
                        if stem1[1] < stem2[0] and stem2[1] < stem1[2] and stem1[3] < stem2[2]]
 

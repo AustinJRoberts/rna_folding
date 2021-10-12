@@ -5,13 +5,13 @@ the properties of a molecule are not solely determined by a set of atoms
 but also by the shape of the molecule. 
 In genetics, the shape of an RNA molecule is largely determined by how it bends back on itself. 
 The sequence of A’s, U’s, G’s, and C’s that make up RNA has 
-certain pairs are drawn together to form hydrogen bonds.
+certain pairs that are drawn together to form hydrogen bonds.
 A sequence of several bonds in a row is called a stem,
 and a stem provides sufficient force to keep the molecule folded together.
 In nature, an RNA molecule will form some stems while avoiding others
 in a manner that  minimizes the free energy of the system. 
 
-This demo program takes am RNA sequence and applies a quadratic model in pursuit of the optimal stem configuration.
+This demo program takes an RNA sequence and applies a quadratic model in pursuit of the optimal stem configuration.
 
 <p align = "center">
 
@@ -25,16 +25,16 @@ However, prediction is made more complicated by two important factors.
 
 First, stems are not allowed to overlap. 
 A simple case of overlapping can be illustrated by Figure 1.
-The stem expressed by the pink lines can be denoted with the tuple (2, 5, 14, 17),
+The stem expressed by the pink lines can be denoted with the tuple (2, 5, 12, 15),
 where 2 is the index of the first G,
-4 is the index of the U,
-14 is the index of the A,
-and 17 is the index of the last C.
+5 is the index of the U,
+12 is the index of the A,
+and 15 is the index of the last C in the stem.
 This 4-tuple is mapped to a single variable.
-However, the smaller stems (2, 4, 15, 17) and (3, 5, 15, 16) also need to be considered,
+However, the smaller stems (2, 4, 13, 15) and (3, 5, 12, 14) also need to be considered,
 even though the optimal solution will not include them in this case.
 
-Second, the intertwining phenomenon known as pseudoknots are less energetically favorable.
+Second, the intertwining phenomenon known as a pseudoknot is less energetically favorable.
 In Figure 2, we see an example of such a pseudoknot, 
 where one side of a stem occurs in between the two sides of a different stem.
 The use of a quadratic objective allows us to make pseudoknots less likely to occur in optimal solutions,
@@ -64,7 +64,7 @@ It then saves a plot of the sequence and its bonds as `RNA_plot.png`.
 ### Optional parameters
 Several optional parameters are accepted:
 
-- `--path`: specifies path the input text file with RNA sequence information. 
+- `--path`: specifies the path to an input text file with RNA sequence information. 
 - `--verbose`: if set to default value of 'True',
 the program prints additional information about the model. 
 - `--min-stem`: minimum length necessary for a stem to be considered.
@@ -134,7 +134,7 @@ where each key maps to a list of the associated stems weakly contained within th
 
 No two stems contained in the same maximal key can both be in an optimal solution, 
 so we treat them all as overlapping, regardless of if it is literally the case.
-This particular case of overlapping is enforced through a one-hot constraint to improve solver performance.
+This particular case of overlapping is enforced through an 'discrete' constraint to improve solver performance.
 
 We further use the stem dictionary structure 
 to avoid comparing all combinations of stems when searching for pseudoknots and overlaps.
